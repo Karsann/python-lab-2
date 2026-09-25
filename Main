@@ -1,0 +1,195 @@
+from abc import ABC, abstractmethod
+
+print("ЗАВДАННЯ 1: Класова ієрархія та поліморфізм")
+
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def get_info(self):
+        return f"Людина: {self.name}, вік: {self.age}"
+
+class Student(Person):
+    def __init__(self, name, age, student_id):
+        super().__init__(name, age)
+        self.student_id = student_id
+
+    def get_info(self):
+        return f"Студент: {self.name}, квиток: {self.student_id}"
+
+class Teacher(Person):
+    def __init__(self, name, age, subject):
+        super().__init__(name, age)
+        self.subject = subject
+
+    def get_info(self):
+        return f"Викладач: {self.name}, предмет: {self.subject}"
+
+class Admin(Person):
+    def __init__(self, name, age, cabinet):
+        super().__init__(name, age)
+        self.cabinet = cabinet
+
+    def get_info(self):
+        return f"Адмін: {self.name}, кабінет: {self.cabinet}"
+
+people = [
+    Student("Дмитро", 19, "KB-21"),
+    Teacher("Богдан Тарасович", 30, "Програмування"),
+    Admin("Максим", 46, 321)
+]
+
+for p in people:
+    print(p.get_info())
+
+print("Перевірка типу:", isinstance(people[0], Student))
+print()
+
+
+print("ЗАВДАННЯ 2: Інкапсуляція та property")
+
+class StudentProfile:
+    def __init__(self, name, score):
+        self._name = name
+        self.__score = score
+
+    @property
+    def score(self):
+        return self.__score
+
+    @score.setter
+    def score(self, value):
+        if value < 0 or value > 100:
+            raise ValueError("Бал має бути від 0 до 100!")
+        self.__score = value
+
+    @property
+    def status(self):
+        if self.__score >= 75:
+            return "Відмінник"
+        return "Звичайний студент"
+
+sp = StudentProfile("Дмитро", 80)
+print(f"Ім'я: {sp._name}, бал: {sp.score}, статус: {sp.status}")
+
+try:
+    sp.score = 120
+except ValueError as e:
+    print("Помилка валідації:", e)
+
+print("Доступ через Name Mangling:", sp._StudentProfile__score)
+print()
+
+
+print("ЗАВДАННЯ 3: Магічні методи")
+
+class GradeBook:
+    def __init__(self, name, grades):
+        self.name = name
+        self.grades = grades
+
+    def __str__(self):
+        return f"Студент {self.name}, оцінки: {self.grades}"
+
+    def __repr__(self):
+        return f"GradeBook('{self.name}', {self.grades})"
+
+    def __add__(self, other):
+        return GradeBook(self.name, self.grades + [other])
+
+    def __len__(self):
+        return len(self.grades)
+
+    def __getitem__(self, index):
+        return self.grades[index]
+
+gb = GradeBook("Олександр", [80, 90, 85])
+print("Рядок:", gb)
+print("Метод repr:", repr(gb))
+gb_new = gb + 95
+print("Після додавання оцінки:", gb_new)
+print("Кількість оцінок:", len(gb_new))
+print("Перша оцінка:", gb_new[0])
+print()
+
+
+print("ЗАВДАННЯ 4: Абстрактні класи та композиція")
+
+class Notifier(ABC):
+    def __init__(self, target):
+        self.target = target
+
+    @abstractmethod
+    def send(self, text):
+        pass
+
+    @property
+    @abstractmethod
+    def type_name(self):
+        pass
+
+class EmailNotifier(Notifier):
+    def send(self, text):
+        return f"Email на {self.target}: {text}"
+
+    @property
+    def type_name(self):
+        return "Пошта"
+
+class TelegramNotifier(Notifier):
+    def send(self, text):
+        return f"Telegram для {self.target}: {text}"
+
+    @property
+    def type_name(self):
+        return "Телеграм"
+
+class UniversitySystem:
+    def __init__(self, student, notifier):
+        self.student = student
+        self.notifier = notifier
+
+    def alert(self, message):
+        return self.notifier.send(f"Привіт, {self.student}! {message}")
+
+us = UniversitySystem("Дмитро", EmailNotifier("student@univ.ua"))
+print(us.alert("Завтра пара о 8:30"))
+
+us.notifier = TelegramNotifier("@Karsan")
+print(us.alert("Зміни розкладу!"))
+print()
+
+
+print("ЗАВДАННЯ 5: Стратегія")
+
+class Strategy(ABC):
+    @abstractmethod
+    def calc(self, base):
+        pass
+
+class Regular(Strategy):
+    def calc(self, base):
+        return base
+
+class SuperStipend(Strategy):
+    def calc(self, base):
+        return base * 1.6
+
+class StipendContext:
+    def __init__(self, name, base, strategy):
+        self.name = name
+        self.base = base
+        self.strategy = strategy
+
+    def set_strategy(self, strategy):
+        self.strategy = strategy
+
+    def get_sum(self):
+        return self.strategy.calc(self.base)
+
+st = StipendContext("Олександр", 2000, Regular())
+print(f"Стипендія {st.name}: {st.get_sum()} грн")
+
+st.set_strategy(SuperStipend())
+print(f"Після підвищення: {st.get_sum()} грн")
